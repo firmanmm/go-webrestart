@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -37,11 +36,11 @@ func main() {
 		option.ProgramName = fileInfo.Name()
 	}
 
-	go watchForChange(&sync.Mutex{}, option, watcher)
+	go watchForChange(option, watcher)
 	<-dummy
 }
 
-func watchForChange(mutex *sync.Mutex, option *RestartOption, watcher *fsnotify.Watcher) {
+func watchForChange(option *RestartOption, watcher *fsnotify.Watcher) {
 	referenceTime := time.Now()
 	tolerance := restartService(option)
 	if option.IsVerbose {
