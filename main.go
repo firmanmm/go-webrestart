@@ -138,7 +138,7 @@ func parseExtension(param []string) []string {
 			break
 		}
 	}
-	return param[1:end]
+	return param[0:end]
 }
 
 func prepareSignalHandling(option *RestartOption) {
@@ -190,6 +190,7 @@ func restartService(option *RestartOption) time.Duration {
 
 	if option.Process != nil {
 		option.Process.Kill()
+		option.Process.Release()
 		option.Process = nil
 	}
 
@@ -201,6 +202,7 @@ func restartService(option *RestartOption) time.Duration {
 
 	cmd = exec.Command(cwd + "/" + option.ProgramName)
 	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	cmd.Start()
 	option.Process = cmd.Process
 
