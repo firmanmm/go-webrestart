@@ -67,9 +67,6 @@ func watchForChange(option *RestartOption, watcher *fsnotify.Watcher) {
 			case fsnotify.Write:
 				difference := time.Since(referenceTime)
 				referenceTime = time.Now()
-				if option.IsVerbose {
-					log.Printf("Operation took %v second(s)", difference.Seconds())
-				}
 				if difference.Seconds() < 1+tolerance.Seconds() {
 					break
 				}
@@ -112,7 +109,7 @@ func recursiveWatch(option *RestartOption, watcher *fsnotify.Watcher, directory 
 }
 
 func parseParameter(param []string) *RestartOption {
-	data := NewGinRestartOption()
+	data := NewRestartOption()
 	for i := 0; i < len(param); i++ {
 		switch param[i] {
 		case "-e":
@@ -138,7 +135,7 @@ func parseExtension(param []string) []string {
 			break
 		}
 	}
-	return param[0:end]
+	return param[0 : end+1]
 }
 
 func prepareSignalHandling(option *RestartOption) {
@@ -163,6 +160,13 @@ func restartService(option *RestartOption) time.Duration {
 		return time.Since(referenceTime)
 	}
 
+	if _, err := os.Stat(cwd + "/tmp_" + option.ProgramName); err == nil {
+		os.Remove(cwd + "/tmp_" + option.ProgramName)
+		if option.IsVerbose {
+			log.Printf("[I] Removing Residue : " + cwd + "/tmp_" + option.ProgramName)
+		}
+	}
+
 	var cmd *exec.Cmd
 	paramList := []string{"build", "-o", "tmp_" + option.ProgramName}
 	if len(option.PassParam) > 0 {
@@ -180,6 +184,7 @@ func restartService(option *RestartOption) time.Duration {
 		printError(err)
 		return time.Since(referenceTime)
 	}
+	cmd.Wait()
 	if _, err := os.Stat(cwd + "/tmp_" + option.ProgramName); err != nil {
 		printError(err)
 		return time.Since(referenceTime)
@@ -190,15 +195,22 @@ func restartService(option *RestartOption) time.Duration {
 
 	if option.Process != nil {
 		option.Process.Kill()
-		option.Process.Release()
+		option.Process.Wait()
 		option.Process = nil
 	}
 
 	if _, err := os.Stat(cwd + "/" + option.ProgramName); err == nil {
-		os.Remove(cwd + "/" + option.ProgramName)
+		if err = os.Remove(cwd + "/" + option.ProgramName); err != nil {
+			printError(err)
+		}
+		if option.IsVerbose {
+			log.Printf("[I] Removing OLD : " + cwd + "/" + option.ProgramName)
+		}
 	}
 
-	os.Rename(cwd+"/tmp_"+option.ProgramName, cwd+"/"+option.ProgramName)
+	if err := os.Rename(cwd+"/tmp_"+option.ProgramName, cwd+"/"+option.ProgramName); err != nil {
+		printError(err)
+	}
 
 	cmd = exec.Command(cwd + "/" + option.ProgramName)
 	cmd.Stdout = os.Stdout

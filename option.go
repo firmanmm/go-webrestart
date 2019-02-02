@@ -39,7 +39,7 @@ func (g *RestartOption) String() string {
 		" Verbose : " + strconv.FormatBool(g.IsVerbose)
 }
 
-func NewGinRestartOption() *RestartOption {
+func NewRestartOption() *RestartOption {
 	data := new(RestartOption)
 	data.ext = map[string]bool{".go": true}
 	data.IsVerbose = false
