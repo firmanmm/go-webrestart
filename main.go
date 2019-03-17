@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 	"os/signal"
+
+	"github.com/firmanmm/go-webrestart/restart"
 )
 
 func main() {
@@ -11,15 +13,16 @@ func main() {
 	option := parseParameter(os.Args[1:])
 	prepareSignalHandling(option)
 	cwd, _ := os.Getwd()
-	webRestart := new(GoWebRestart)
+	webRestart := new(restart.GoWebRestart)
+	webRestart.Option = option
 	webRestart.Watch(cwd)
 
 	dummy := make(chan bool)
 	<-dummy
 }
 
-func parseParameter(param []string) *RestartOption {
-	data := NewRestartOption()
+func parseParameter(param []string) *restart.RestartOption {
+	data := restart.NewRestartOption()
 	for i := 0; i < len(param); i++ {
 		switch param[i] {
 		case "-e":
@@ -48,7 +51,7 @@ func parseExtension(param []string) []string {
 	return param[0 : end+1]
 }
 
-func prepareSignalHandling(option *RestartOption) {
+func prepareSignalHandling(option *restart.RestartOption) {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func() {
