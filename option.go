@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -9,6 +10,7 @@ import (
 type RestartOption struct {
 	ext         map[string]bool
 	ProgramName string
+	ProgramExt  string
 	PassParam   string
 	IsVerbose   bool
 	Process     *os.Process
@@ -45,5 +47,10 @@ func NewRestartOption() *RestartOption {
 	data.IsVerbose = false
 	data.PassParam = ""
 	data.Process = nil
+	if runtime.GOOS == "windows" {
+		data.ProgramExt += ".exe"
+	} else {
+		data.ProgramExt += ".bin"
+	}
 	return data
 }

@@ -23,6 +23,6 @@ go-webrestart
 | -e      | add extra extension to watch for (default .go)      | go-webrestart -e .tpl .html .env |
 
 ### Test
-+ Tested on Beego Web Framework and working under Windows 10 and Ubuntu 16.04 (WSL).
-+ Tested on Gin Web Framework and working under Windows 10 and Ubuntu 16.04 (WSL).
++ Tested on Beego Web Framework and working under Windows 10 using Ubuntu 16.04 (WSL).
++ Tested on Gin Web Framework and working under Windows 10 using Ubuntu 16.04 (WSL).
 
