@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 
 	"github.com/firmanmm/go-webrestart/restart"
 )
@@ -23,6 +24,9 @@ func main() {
 
 func parseParameter(param []string) *restart.RestartOption {
 	data := restart.NewRestartOption()
+	cwd, _ := os.Getwd()
+	data.ProgramName = filepath.Base(cwd)
+	log.Println(data.ProgramName)
 	for i := 0; i < len(param); i++ {
 		switch param[i] {
 		case "-e":
