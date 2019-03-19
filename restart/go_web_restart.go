@@ -14,13 +14,18 @@ import (
 
 //GoWebRestart provide function to detect source code change and automatically restart it
 type GoWebRestart struct {
+	process *os.Process
+	watcher *fsnotify.Watcher
+
 	Option *RestartOption
 }
 
-//Watch for change on specific dir
-func (g *GoWebRestart) Watch(dir string) {
+//Watch for change on specific source, edit Option
+func (g *GoWebRestart) Watch() {
+	g.Stop()
 	watcher, _ := fsnotify.NewWatcher()
-	g.recursiveWatch(watcher, dir)
+	g.watcher = watcher
+	g.recursiveWatch(watcher, g.Option.Source)
 	go g.watchForChange(watcher)
 }
 
@@ -117,10 +122,10 @@ func (g *GoWebRestart) restartService() time.Duration {
 		return time.Since(referenceTime)
 	}
 
-	if g.Option.Process != nil {
-		g.Option.Process.Kill()
-		g.Option.Process.Wait()
-		g.Option.Process = nil
+	if g.process != nil {
+		g.process.Kill()
+		g.process.Wait()
+		g.process = nil
 	}
 
 	g.swapProcess(cwd)
@@ -172,7 +177,15 @@ func (g *GoWebRestart) swapProcess(cwd string) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Start()
-	g.Option.Process = cmd.Process
+	g.process = cmd.Process
+}
+
+//Stop current watcher
+func (g *GoWebRestart) Stop() {
+	if g.watcher != nil {
+		g.watcher.Close()
+	}
+	g.watcher = nil
 }
 
 //NewGoWebRestart instance with its option added

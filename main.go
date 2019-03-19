@@ -16,7 +16,8 @@ func main() {
 	cwd, _ := os.Getwd()
 	webRestart := new(restart.GoWebRestart)
 	webRestart.Option = option
-	webRestart.Watch(cwd)
+	webRestart.Option.Source = cwd
+	webRestart.Watch()
 
 	dummy := make(chan bool)
 	<-dummy
