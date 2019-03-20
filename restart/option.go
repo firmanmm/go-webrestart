@@ -13,7 +13,8 @@ type RestartOption struct {
 	Source      string
 	ProgramName string
 	ProgramExt  string
-	PassParam   []string
+	RunTags     []string
+	CompileTags []string
 	IsVerbose   bool
 }
 
@@ -49,7 +50,7 @@ func NewRestartOption() *RestartOption {
 	data := new(RestartOption)
 	data.ext = map[string]bool{".go": true}
 	data.IsVerbose = false
-	data.PassParam = make([]string, 0)
+	data.CompileTags = make([]string, 0)
 	cwd, _ := os.Getwd()
 	data.Source = cwd
 	if runtime.GOOS == "windows" {

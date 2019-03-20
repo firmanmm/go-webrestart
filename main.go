@@ -35,7 +35,7 @@ func parseParameter(param []string) *restart.RestartOption {
 			data.AddExt(parseExtension(param[i+1:]))
 			break
 		case "-p":
-			data.PassParam = strings.Split(param[i+1], " ")
+			data.CompileTags = strings.Split(param[i+1], " ")
 			break
 		case "-v":
 			data.IsVerbose = true

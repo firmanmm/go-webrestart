@@ -136,10 +136,10 @@ func (g *GoWebRestart) restartService() time.Duration {
 	return time.Since(referenceTime)
 }
 
-//Compile
+//Compile current app with certain name, and with path to source code
 func (g *GoWebRestart) Compile(name, path string) error {
 	paramList := []string{"build", "-o", name, path}
-	paramList = append(paramList, g.Option.PassParam...)
+	paramList = append(paramList, g.Option.CompileTags...)
 
 	cmd := exec.Command("go", paramList...)
 	cmd.Stdout = os.Stdout
@@ -150,24 +150,24 @@ func (g *GoWebRestart) Compile(name, path string) error {
 	cmd.Wait()
 
 	return nil
-	return nil
 }
 
 func (g *GoWebRestart) swapProcess(cwd string) {
-	if _, err := os.Stat(cwd + "/" + g.Option.ProgramName + g.Option.ProgramExt); err == nil {
-		if err = os.Remove(cwd + "/" + g.Option.ProgramName + g.Option.ProgramExt); err != nil {
+	appLocation := cwd + "/" + g.Option.ProgramName + g.Option.ProgramExt
+	if _, err := os.Stat(appLocation); err == nil {
+		if err = os.Remove(appLocation); err != nil {
 			log.Println("[ERROR] " + err.Error())
 		}
 		if g.Option.IsVerbose {
-			log.Printf("[I] Removing OLD : " + cwd + "/" + g.Option.ProgramName + g.Option.ProgramExt)
+			log.Printf("[I] Removing OLD : " + appLocation)
 		}
 	}
 
-	if err := os.Rename(cwd+"/tmp_"+g.Option.ProgramName+g.Option.ProgramExt, cwd+"/"+g.Option.ProgramName+g.Option.ProgramExt); err != nil {
+	if err := os.Rename(cwd+"/tmp_"+g.Option.ProgramName+g.Option.ProgramExt, appLocation); err != nil {
 		log.Println("[ERROR] " + err.Error())
 	}
 
-	cmd := exec.Command(cwd + "/" + g.Option.ProgramName + g.Option.ProgramExt)
+	cmd := exec.Command(appLocation, g.Option.RunTags...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Start()
