@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -100,6 +99,7 @@ func (g *GoWebRestart) recursiveWatch(watcher *fsnotify.Watcher, directory strin
 }
 
 func (g *GoWebRestart) restartService() time.Duration {
+	compilePath := "/tmp_" + g.Option.ProgramName + g.Option.ProgramExt
 	referenceTime := time.Now()
 	if g.Option.IsVerbose {
 		log.Println("[I] Restarting...")
@@ -110,14 +110,14 @@ func (g *GoWebRestart) restartService() time.Duration {
 		return time.Since(referenceTime)
 	}
 
-	if _, err := os.Stat(cwd + "/tmp_" + g.Option.ProgramName + g.Option.ProgramExt); err == nil {
-		os.Remove(cwd + "/tmp_" + g.Option.ProgramName + g.Option.ProgramExt)
+	if _, err := os.Stat(cwd + compilePath); err == nil {
+		os.Remove(cwd + compilePath)
 		if g.Option.IsVerbose {
-			log.Printf("[I] Cleaning Residue : " + cwd + "/tmp_" + g.Option.ProgramName + g.Option.ProgramExt)
+			log.Printf("[I] Cleaning Residue : " + cwd + compilePath)
 		}
 	}
 
-	if err := g.compile(cwd); err != nil {
+	if err := g.Compile(cwd+compilePath, g.Option.Source); err != nil {
 		log.Println("[ERROR] " + err.Error())
 		return time.Since(referenceTime)
 	}
@@ -136,15 +136,10 @@ func (g *GoWebRestart) restartService() time.Duration {
 	return time.Since(referenceTime)
 }
 
-func (g *GoWebRestart) compile(cwd string) error {
-	paramList := []string{"build", "-o", "tmp_" + g.Option.ProgramName + g.Option.ProgramExt}
-	if len(g.Option.PassParam) > 0 {
-		paramList = append(paramList, strings.Split(g.Option.PassParam, " ")...)
-	}
-
-	if g.Option.IsVerbose {
-		log.Println("[I] Building ")
-	}
+//Compile
+func (g *GoWebRestart) Compile(name, path string) error {
+	paramList := []string{"build", "-o", name, path}
+	paramList = append(paramList, g.Option.PassParam...)
 
 	cmd := exec.Command("go", paramList...)
 	cmd.Stdout = os.Stdout
@@ -153,9 +148,8 @@ func (g *GoWebRestart) compile(cwd string) error {
 		return err
 	}
 	cmd.Wait()
-	if _, err := os.Stat(cwd + "/tmp_" + g.Option.ProgramName + g.Option.ProgramExt); err != nil {
-		return err
-	}
+
+	return nil
 	return nil
 }
 

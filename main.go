@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 
 	"github.com/firmanmm/go-webrestart/restart"
 )
@@ -34,7 +35,7 @@ func parseParameter(param []string) *restart.RestartOption {
 			data.AddExt(parseExtension(param[i+1:]))
 			break
 		case "-p":
-			data.PassParam = param[i+1]
+			data.PassParam = strings.Split(param[i+1], " ")
 			break
 		case "-v":
 			data.IsVerbose = true

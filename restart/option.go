@@ -1,6 +1,7 @@
 package restart
 
 import (
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
@@ -12,7 +13,7 @@ type RestartOption struct {
 	Source      string
 	ProgramName string
 	ProgramExt  string
-	PassParam   string
+	PassParam   []string
 	IsVerbose   bool
 }
 
@@ -40,7 +41,6 @@ func (g *RestartOption) IsExtExist(ext string) bool {
 
 func (g *RestartOption) String() string {
 	return "Ext : " + strings.Join(g.GetExt(), " ") +
-		" PassParam : " + g.PassParam +
 		" Verbose : " + strconv.FormatBool(g.IsVerbose)
 }
 
@@ -49,7 +49,9 @@ func NewRestartOption() *RestartOption {
 	data := new(RestartOption)
 	data.ext = map[string]bool{".go": true}
 	data.IsVerbose = false
-	data.PassParam = ""
+	data.PassParam = make([]string, 0)
+	cwd, _ := os.Getwd()
+	data.Source = cwd
 	if runtime.GOOS == "windows" {
 		data.ProgramExt += ".exe"
 	} else {
