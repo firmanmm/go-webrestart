@@ -1,6 +1,7 @@
 package restart
 
 import (
+	"io"
 	"os"
 	"runtime"
 	"strconv"
@@ -11,12 +12,14 @@ import (
 type RestartOption struct {
 	ext         map[string]bool
 	Source      string
-	OutputDir   string
 	ProgramName string
 	ProgramExt  string
 	RunTags     []string
 	CompileTags []string
 	IsVerbose   bool
+	Stdout      io.Writer
+	Stderr      io.Writer
+	Stdin       io.Reader
 }
 
 //AddExt in ".ext" format. Example ".go .exe .html"
@@ -52,7 +55,6 @@ func NewRestartOption() *RestartOption {
 	data.ext = map[string]bool{".go": true}
 	data.IsVerbose = false
 	data.CompileTags = make([]string, 0)
-	data.OutputDir = ""
 	cwd, _ := os.Getwd()
 	data.Source = cwd
 	if runtime.GOOS == "windows" {

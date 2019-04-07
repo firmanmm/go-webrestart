@@ -55,7 +55,7 @@ func (g *GoWebRestart) watchForChange(watcher *fsnotify.Watcher) {
 			case fsnotify.Write:
 				difference := time.Since(referenceTime)
 				referenceTime = time.Now()
-				if difference.Seconds() < 1+tolerance.Seconds() {
+				if difference.Seconds() < 5 {
 					break
 				}
 				ext := filepath.Ext(event.Name)
@@ -99,7 +99,7 @@ func (g *GoWebRestart) recursiveWatch(watcher *fsnotify.Watcher, directory strin
 }
 
 func (g *GoWebRestart) restartService() time.Duration {
-	compilePath := "/" + g.Option.OutputDir + "/tmp_" + g.Option.ProgramName + g.Option.ProgramExt
+	compilePath := "/tmp_" + g.Option.ProgramName + g.Option.ProgramExt
 	referenceTime := time.Now()
 	if g.Option.IsVerbose {
 		log.Println("[I] Restarting...")
@@ -138,10 +138,11 @@ func (g *GoWebRestart) restartService() time.Duration {
 
 //Compile current app with certain name, and with path to source code
 func (g *GoWebRestart) Compile(name, path string) error {
-	paramList := []string{"build", "-o", name, path}
+	paramList := []string{"build", "-o", name}
 	if len(g.Option.CompileTags) > 0 && g.Option.CompileTags[0] != "" {
 		paramList = append(paramList, g.Option.CompileTags...)
 	}
+	paramList = append(paramList, path)
 	cmd := exec.Command("go", paramList...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -155,7 +156,8 @@ func (g *GoWebRestart) Compile(name, path string) error {
 }
 
 func (g *GoWebRestart) swapProcess(cwd string) {
-	appLocation := cwd + "/" + g.Option.OutputDir + "/" + g.Option.ProgramName + g.Option.ProgramExt
+	appLocation := cwd + "/" + g.Option.ProgramName + g.Option.ProgramExt
+
 	if _, err := os.Stat(appLocation); err == nil {
 		if err = os.Remove(appLocation); err != nil {
 			log.Println("[ERROR] " + err.Error())
@@ -165,14 +167,15 @@ func (g *GoWebRestart) swapProcess(cwd string) {
 		}
 	}
 
-	if err := os.Rename(cwd+"/"+g.Option.OutputDir+"/tmp_"+g.Option.ProgramName+g.Option.ProgramExt, appLocation); err != nil {
+	if err := os.Rename(cwd+"/tmp_"+g.Option.ProgramName+g.Option.ProgramExt, appLocation); err != nil {
 		log.Println("[ERROR] " + err.Error())
 	}
 
 	cmd := exec.Command(appLocation, g.Option.RunTags...)
 	cmd.Dir = filepath.Dir(appLocation)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = g.Option.Stdout
+	cmd.Stderr = g.Option.Stderr
+
 	cmd.Start()
 	g.process = cmd.Process
 }
