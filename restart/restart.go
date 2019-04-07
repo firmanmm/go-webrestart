@@ -99,7 +99,7 @@ func (g *GoWebRestart) recursiveWatch(watcher *fsnotify.Watcher, directory strin
 }
 
 func (g *GoWebRestart) restartService() time.Duration {
-	compilePath := g.Option.OutputDir + "/tmp_" + g.Option.ProgramName + g.Option.ProgramExt
+	compilePath := "/" + g.Option.OutputDir + "/tmp_" + g.Option.ProgramName + g.Option.ProgramExt
 	referenceTime := time.Now()
 	if g.Option.IsVerbose {
 		log.Println("[I] Restarting...")
@@ -139,21 +139,23 @@ func (g *GoWebRestart) restartService() time.Duration {
 //Compile current app with certain name, and with path to source code
 func (g *GoWebRestart) Compile(name, path string) error {
 	paramList := []string{"build", "-o", name, path}
-	paramList = append(paramList, g.Option.CompileTags...)
-
+	if len(g.Option.CompileTags) > 0 && g.Option.CompileTags[0] != "" {
+		paramList = append(paramList, g.Option.CompileTags...)
+	}
 	cmd := exec.Command("go", paramList...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return err
 	}
+
 	cmd.Wait()
 
 	return nil
 }
 
 func (g *GoWebRestart) swapProcess(cwd string) {
-	appLocation := cwd + g.Option.OutputDir + "/" + g.Option.ProgramName + g.Option.ProgramExt
+	appLocation := cwd + "/" + g.Option.OutputDir + "/" + g.Option.ProgramName + g.Option.ProgramExt
 	if _, err := os.Stat(appLocation); err == nil {
 		if err = os.Remove(appLocation); err != nil {
 			log.Println("[ERROR] " + err.Error())
@@ -163,11 +165,12 @@ func (g *GoWebRestart) swapProcess(cwd string) {
 		}
 	}
 
-	if err := os.Rename(cwd+g.Option.OutputDir+"/tmp_"+g.Option.ProgramName+g.Option.ProgramExt, appLocation); err != nil {
+	if err := os.Rename(cwd+"/"+g.Option.OutputDir+"/tmp_"+g.Option.ProgramName+g.Option.ProgramExt, appLocation); err != nil {
 		log.Println("[ERROR] " + err.Error())
 	}
 
 	cmd := exec.Command(appLocation, g.Option.RunTags...)
+	cmd.Dir = filepath.Dir(appLocation)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Start()
