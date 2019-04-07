@@ -99,7 +99,7 @@ func (g *GoWebRestart) recursiveWatch(watcher *fsnotify.Watcher, directory strin
 }
 
 func (g *GoWebRestart) restartService() time.Duration {
-	compilePath := "/tmp_" + g.Option.ProgramName + g.Option.ProgramExt
+	compilePath := g.Option.OutputDir + "/tmp_" + g.Option.ProgramName + g.Option.ProgramExt
 	referenceTime := time.Now()
 	if g.Option.IsVerbose {
 		log.Println("[I] Restarting...")
@@ -153,7 +153,7 @@ func (g *GoWebRestart) Compile(name, path string) error {
 }
 
 func (g *GoWebRestart) swapProcess(cwd string) {
-	appLocation := cwd + "/" + g.Option.ProgramName + g.Option.ProgramExt
+	appLocation := cwd + g.Option.OutputDir + "/" + g.Option.ProgramName + g.Option.ProgramExt
 	if _, err := os.Stat(appLocation); err == nil {
 		if err = os.Remove(appLocation); err != nil {
 			log.Println("[ERROR] " + err.Error())

@@ -11,6 +11,7 @@ import (
 type RestartOption struct {
 	ext         map[string]bool
 	Source      string
+	OutputDir   string
 	ProgramName string
 	ProgramExt  string
 	RunTags     []string
