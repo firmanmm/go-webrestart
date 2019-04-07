@@ -163,7 +163,7 @@ func (g *GoWebRestart) swapProcess(cwd string) {
 		}
 	}
 
-	if err := os.Rename(cwd+"/tmp_"+g.Option.ProgramName+g.Option.ProgramExt, appLocation); err != nil {
+	if err := os.Rename(cwd+g.Option.OutputDir+"/tmp_"+g.Option.ProgramName+g.Option.ProgramExt, appLocation); err != nil {
 		log.Println("[ERROR] " + err.Error())
 	}
 

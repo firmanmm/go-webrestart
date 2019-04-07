@@ -52,6 +52,7 @@ func NewRestartOption() *RestartOption {
 	data.ext = map[string]bool{".go": true}
 	data.IsVerbose = false
 	data.CompileTags = make([]string, 0)
+	data.OutputDir = ""
 	cwd, _ := os.Getwd()
 	data.Source = cwd
 	if runtime.GOOS == "windows" {
