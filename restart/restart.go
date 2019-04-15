@@ -56,7 +56,7 @@ func (g *GoWebRestart) watchForChange(watcher *fsnotify.Watcher) {
 			case fsnotify.Write:
 				difference := time.Since(referenceTime)
 				referenceTime = time.Now()
-				if difference.Seconds() < 5 {
+				if difference.Seconds() < 1+tolerance.Seconds() {
 					break
 				}
 				ext := filepath.Ext(event.Name)
