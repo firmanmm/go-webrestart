@@ -13,10 +13,11 @@ import (
 
 //GoWebRestart provide function to detect source code change and automatically restart it
 type GoWebRestart struct {
-	process *os.Process
-	watcher *fsnotify.Watcher
-
-	Option *RestartOption
+	process         *os.Process
+	watcher         *fsnotify.Watcher
+	OnCompileFinish func()
+	OnRun           func()
+	Option          *RestartOption
 }
 
 //Watch for change on specific source, edit Option
@@ -151,6 +152,9 @@ func (g *GoWebRestart) Compile(name, path string) error {
 	}
 
 	cmd.Wait()
+	if g.OnCompileFinish != nil {
+		g.OnCompileFinish()
+	}
 
 	return nil
 }
@@ -177,6 +181,9 @@ func (g *GoWebRestart) swapProcess(cwd string) {
 	cmd.Stderr = g.Option.Stderr
 
 	cmd.Start()
+	if g.OnRun != nil {
+		g.OnRun()
+	}
 	g.process = cmd.Process
 }
 
