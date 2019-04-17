@@ -181,10 +181,10 @@ func (g *GoWebRestart) swapProcess(cwd string) {
 	cmd.Stderr = g.Option.Stderr
 
 	cmd.Start()
+	g.process = cmd.Process
 	if g.OnRun != nil {
 		g.OnRun()
 	}
-	g.process = cmd.Process
 }
 
 //Stop current watcher
