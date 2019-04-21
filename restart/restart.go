@@ -13,11 +13,13 @@ import (
 
 //GoWebRestart provide function to detect source code change and automatically restart it
 type GoWebRestart struct {
-	process         *os.Process
-	watcher         *fsnotify.Watcher
-	OnCompileFinish func()
-	OnRun           func()
-	Option          *RestartOption
+	process           *os.Process
+	watcher           *fsnotify.Watcher
+	OnCompileStarting func()
+	OnCompileFinish   func()
+	OnRunStarting     func()
+	OnRunFinish       func()
+	Option            *RestartOption
 }
 
 //Watch for change on specific source, edit Option
@@ -139,6 +141,9 @@ func (g *GoWebRestart) restartService() time.Duration {
 
 //Compile current app with certain name, and with path to source code
 func (g *GoWebRestart) Compile(name, path string) error {
+	if g.OnCompileStarting != nil {
+		g.OnCompileStarting()
+	}
 	paramList := []string{"build", "-o", name}
 	if len(g.Option.CompileTags) > 0 && g.Option.CompileTags[0] != "" {
 		paramList = append(paramList, g.Option.CompileTags...)
@@ -160,6 +165,9 @@ func (g *GoWebRestart) Compile(name, path string) error {
 }
 
 func (g *GoWebRestart) swapProcess(cwd string) {
+	if g.OnRunStarting != nil {
+		g.OnRunStarting()
+	}
 	appLocation := cwd + "/" + g.Option.ProgramName + g.Option.ProgramExt
 
 	if _, err := os.Stat(appLocation); err == nil {
@@ -182,8 +190,8 @@ func (g *GoWebRestart) swapProcess(cwd string) {
 
 	cmd.Start()
 	g.process = cmd.Process
-	if g.OnRun != nil {
-		g.OnRun()
+	if g.OnRunFinish != nil {
+		g.OnRunFinish()
 	}
 }
 
